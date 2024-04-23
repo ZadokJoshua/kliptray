@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Kliptray (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Kliptray (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

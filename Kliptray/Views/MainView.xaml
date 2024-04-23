@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="Kliptray.Views.MainView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Kliptray.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid>
+        <SplitView
+            DisplayMode="CompactInline"
+            IsPaneOpen="True"
+            OpenPaneLength="350"
+            PaneBackground="#1d2021"
+            Background="#282828">
+            <SplitView.Pane>
+                <StackPanel
+                    Margin="10"
+                    Orientation="Vertical"
+                    Spacing="8">
+                    <Grid VerticalAlignment="Center" ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock
+                            Grid.Column="0"
+                            FontSize="20"
+                            Text="Clipboard History"/>
+                        <Button
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Content="Filter">
+                            <Button.Flyout>
+                                <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                    <MenuFlyoutItem Text="Texts" />
+                                    <MenuFlyoutItem Text="Images" />
+                                </MenuFlyout>
+                            </Button.Flyout>
+                        </Button>
+                        <Button
+                            Grid.Column="2"
+                            VerticalAlignment="Center"
+                            Content="Sort">
+                            <Button.Flyout>
+                                <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                    <MenuFlyoutItem Text="Newest" />
+                                    <MenuFlyoutItem Text="Oldest" />
+                                </MenuFlyout>
+                            </Button.Flyout>
+                        </Button>
+                    </Grid>
+                    <AutoSuggestBox PlaceholderText="Search" QueryIcon="Find"/>
+                </StackPanel>
+            </SplitView.Pane>
+
+            <Border Margin="10" CornerRadius="8" Background="#3c3836">
+                <Image Source="/Assets/vector-bg.png" Stretch="UniformToFill" Opacity=".5"/>
+            </Border>
+        </SplitView>
+    </Grid>
+</UserControl>
