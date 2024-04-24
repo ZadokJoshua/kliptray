@@ -1,3 +1,4 @@
+using Kliptray.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -16,13 +17,14 @@ using Windows.Foundation.Collections;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
-namespace Kliptray.Views
+namespace Kliptray.Views;
+
+public sealed partial class MainView : UserControl
 {
-    public sealed partial class MainView : UserControl
+    public MainViewModel ViewModel { get; set; }
+    public MainView()
     {
-        public MainView()
-        {
-            this.InitializeComponent();
-        }
+        this.InitializeComponent();
+        ViewModel = new MainViewModel();
     }
 }
