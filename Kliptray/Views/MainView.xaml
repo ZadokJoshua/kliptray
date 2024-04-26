@@ -14,7 +14,15 @@
     mc:Ignorable="d">
     <UserControl.Resources>
         <converters:BoolToVisibilityConverter
-            x:Key="BoolToVisibilityConverter"
+            x:Key="ContentBoolToVisibilityConverter"
+            FalseValue="Collapsed"
+            TrueValue="Visible" />
+        <converters:BoolToVisibilityConverter
+            x:Key="PaneInfoBoolToVisibilityConverter"
+            FalseValue="Visible"
+            TrueValue="Collapsed" />
+        <converters:BoolToVisibilityConverter
+            x:Key="PaneListViewBoolToVisibilityConverter"
             FalseValue="Collapsed"
             TrueValue="Visible" />
     </UserControl.Resources>
@@ -76,7 +84,8 @@
                     <ScrollViewer
                         Grid.Row="2"
                         VerticalScrollBarVisibility="Auto"
-                        VerticalScrollMode="Auto">
+                        VerticalScrollMode="Auto"
+                        Visibility="{x:Bind ViewModel.IsClipboardEnabled, Mode=OneWay, Converter={StaticResource PaneListViewBoolToVisibilityConverter}}">
                         <ListView
                             x:Name="itemsListView"
                             ItemsSource="{x:Bind ViewModel.ClipboardItems}"
@@ -132,6 +141,16 @@
                             </Interactivity:Interaction.Behaviors>
                         </ListView>
                     </ScrollViewer>
+
+                    <StackPanel
+                        Grid.Row="2"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Orientation="Vertical" Spacing="8"
+                        Visibility="{x:Bind ViewModel.IsClipboardEnabled, Mode=OneWay, Converter={StaticResource PaneInfoBoolToVisibilityConverter}}">
+                        <TextBlock FontSize="20" Text="Clipboard history is disabled" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <Button Command="{x:Bind ViewModel.EnableClipboardHistoryCommand}" Content="Enable Clipboard History" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+                    </StackPanel>
                 </Grid>
             </SplitView.Pane>
 
@@ -155,13 +174,11 @@
                     Grid.Row="0"
                     Margin="20"
                     Padding="8"
-                    Background="{StaticResource AccentAAFillColorDefaultBrush}"
-                    BorderBrush="{StaticResource AccentAAFillColorTertiaryBrush}"
-                    BorderThickness="0"
+                    Background="#1d2021"
                     ColumnSpacing="4"
                     CornerRadius="8"
-                    Opacity=".8"
-                    Visibility="{x:Bind ViewModel.IsItemSelected, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                    Opacity=".9"
+                    Visibility="{x:Bind ViewModel.IsItemSelected, Mode=OneWay, Converter={StaticResource ContentBoolToVisibilityConverter}}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="2*" />
                         <ColumnDefinition Width="*" />
@@ -175,7 +192,6 @@
                         Grid.Column="0"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
-                        Foreground="Black"
                         Text="{x:Bind ViewModel.SelectedItem.Text, Mode=OneWay}" />
 
                     <RichTextBlock Grid.Column="0" />
@@ -205,7 +221,7 @@
                     Margin="20"
                     VerticalAlignment="Bottom"
                     QueryIcon="Send"
-                    Visibility="{x:Bind ViewModel.IsItemSelected, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    Visibility="{x:Bind ViewModel.IsItemSelected, Mode=OneWay, Converter={StaticResource ContentBoolToVisibilityConverter}}" />
             </Grid>
         </SplitView>
     </Grid>

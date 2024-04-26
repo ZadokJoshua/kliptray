@@ -8,6 +8,7 @@ using Windows.ApplicationModel.DataTransfer;
 using System.Collections.ObjectModel;
 using Windows.System;
 using CommunityToolkit.Mvvm.Input;
+using Kliptray.Helpers;
 
 namespace Kliptray.ViewModels;
 
@@ -21,82 +22,63 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _isItemSelected;
 
-   
+    
+    private bool _isClipboardEnabled;
+    
+    public bool IsClipboardEnabled
+    {
+        get => _isClipboardEnabled;
+        set
+        {
+            _isClipboardEnabled = value;
+            OnPropertyChanged(nameof(IsClipboardEnabled));
 
+            if (IsClipboardEnabled )
+            {
+                PopulateClipboardItems();
+            }
+        }
+    }
 
     public MainViewModel()
     {
-        PopulateClipboardItems();
-
-        Clipboard.HistoryEnabledChanged += (S, e) =>
-        {
-            PopulateClipboardItems();
-        };
+        IsClipboardEnabled = Clipboard.IsHistoryEnabled();
+        Clipboard.HistoryEnabledChanged += ClipboardHistoryEnabledChanged_EventHandler;
+        Clipboard.ContentChanged += ClipboardContentChanged_EventHandler;
     }
 
-    public async Task<List<ClipboardItem>> GetClipboardHistoryItemsAsync()
+    private void ClipboardContentChanged_EventHandler(object? sender, object e)
     {
-        ClipboardHistoryEnabled();
-        List<ClipboardItem> clipboardItems = new();
-
-        var historyItems = await Clipboard.GetHistoryItemsAsync();
-        if (historyItems.Status == ClipboardHistoryItemsResultStatus.Success)
-        {
-            foreach (var item in historyItems.Items)
-            {
-                var view = item.Content;
-                if (view.Contains(StandardDataFormats.Bitmap))
-                {
-                    var bitmapReference = await view.GetBitmapAsync();
-
-                    if (bitmapReference != null)
-                    {
-                        var bitmap = new BitmapImage();
-                        await bitmap.SetSourceAsync(await bitmapReference.OpenReadAsync());
-                        clipboardItems.Add(new ClipboardItem
-                        {
-                            Image = bitmap,
-                            TimeStamp = item.Timestamp
-                        });
-                    }
-                }
-                else if (view.Contains(StandardDataFormats.Text))
-                {
-                    var text = await view.GetTextAsync();
-
-                    if (text != null)
-                    {
-                        clipboardItems.Add(new ClipboardItem
-                        {
-                            Text = text,
-                            TimeStamp = item.Timestamp,
-                            IsImage = true
-                        });
-                    }
-                }
-            }
-        }
-
-        return clipboardItems;
+        PopulateClipboardItems();
     }
+
+    private void ClipboardHistoryEnabledChanged_EventHandler(object? sender, object e)
+    {
+        IsClipboardEnabled = Clipboard.IsHistoryEnabled();
+    }
+
+    
 
     private async void PopulateClipboardItems()
     {
-        ClipboardItems.Clear();
-
-        var items = await GetClipboardHistoryItemsAsync();
-        if (items.Count > 0 && items != null)
+        if (IsClipboardEnabled)
         {
-            foreach( var item in items)
+            ClipboardItems.Clear();
+            var items = await ClipboardHelper.GetClipboardHistoryItemsAsync();
+            if (items.Count > 0 && items != null)
             {
-                ClipboardItems.Add(item);
+                foreach (var item in items)
+                {
+                    ClipboardItems.Add(item);
+                }
             }
         }
     }
 
-    private static async void ClipboardHistoryEnabled()
+    [RelayCommand]
+    private async Task EnableClipboardHistory()
     {
-        if(!Clipboard.IsHistoryEnabled())
+        if(!IsClipboardEnabled)
         {
             await Launcher.LaunchUriAsync(new Uri("ms-settings:clipboard"));
         }
