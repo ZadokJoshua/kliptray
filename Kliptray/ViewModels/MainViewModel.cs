@@ -7,12 +7,22 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using System.Collections.ObjectModel;
 using Windows.System;
+using CommunityToolkit.Mvvm.Input;
 
 namespace Kliptray.ViewModels;
 
-public class MainViewModel : ObservableObject
+public partial class MainViewModel : ObservableObject
 {
     public ObservableCollection<ClipboardItem> ClipboardItems = new();
+
+    [ObservableProperty]
+    private ClipboardItem? _selectedItem;
+
+    [ObservableProperty]
+    private bool _isItemSelected;
+
+   
+
 
     public MainViewModel()
     {
@@ -24,8 +34,9 @@ public class MainViewModel : ObservableObject
         };
     }
 
-    public static async Task<List<ClipboardItem>> GetClipboardHistoryItemsAsync()
+    public async Task<List<ClipboardItem>> GetClipboardHistoryItemsAsync()
     {
+        ClipboardHistoryEnabled();
         List<ClipboardItem> clipboardItems = new();
 
         var historyItems = await Clipboard.GetHistoryItemsAsync();
@@ -42,7 +53,11 @@ public class MainViewModel : ObservableObject
                     {
                         var bitmap = new BitmapImage();
                         await bitmap.SetSourceAsync(await bitmapReference.OpenReadAsync());
-                        clipboardItems.Add(new ClipboardItem { Image = bitmap, TimeStamp = item.Timestamp});
+                        clipboardItems.Add(new ClipboardItem
+                        {
+                            Image = bitmap,
+                            TimeStamp = item.Timestamp
+                        });
                     }
                 }
                 else if (view.Contains(StandardDataFormats.Text))
@@ -51,7 +66,12 @@ public class MainViewModel : ObservableObject
 
                     if (text != null)
                     {
-                        clipboardItems.Add(new ClipboardItem { Text = text, TimeStamp = item.Timestamp });
+                        clipboardItems.Add(new ClipboardItem
+                        {
+                            Text = text,
+                            TimeStamp = item.Timestamp,
+                            IsImage = true
+                        });
                     }
                 }
             }
@@ -74,11 +94,22 @@ public class MainViewModel : ObservableObject
         }
     }
 
-    private async void ClipboardHistoryEnabled()
+    private static async void ClipboardHistoryEnabled()
     {
-        if(Clipboard.IsHistoryEnabled())
+        if(!Clipboard.IsHistoryEnabled())
         {
             await Launcher.LaunchUriAsync(new Uri("ms-settings:clipboard"));
+        }
+    }
+
+
+    [RelayCommand]
+    private void GetSelectedItem(ClipboardItem clipboardItem)
+    {
+        if (clipboardItem != null)
+        {
+            SelectedItem = clipboardItem;
+            IsItemSelected = true;
         }
     }
 }

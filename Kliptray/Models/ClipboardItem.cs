@@ -10,4 +10,6 @@ public class ClipboardItem
     public ImageSource? Image { get; set; }
 
     public string? Text { get; set; }
+
+    public bool IsImage { get; set; }
 }
