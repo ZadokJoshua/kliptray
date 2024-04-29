@@ -3,7 +3,7 @@ using System;
 
 namespace Kliptray.Models;
 
-public class ClipboardItem
+public record ClipboardItem
 {
     public DateTimeOffset TimeStamp { get; set; }
 

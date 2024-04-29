@@ -1,20 +1,20 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Kliptray.Models;
-using Microsoft.UI.Xaml.Media.Imaging;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using System.Collections.ObjectModel;
 using Windows.System;
 using CommunityToolkit.Mvvm.Input;
 using Kliptray.Helpers;
+using Kliptray.Services;
 
 namespace Kliptray.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
     public ObservableCollection<ClipboardItem> ClipboardItems = new();
+    public ObservableCollection<Message> Chat = new();
 
     [ObservableProperty]
     private ClipboardItem? _selectedItem;
@@ -22,34 +22,28 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _isItemSelected;
 
-    
-    private bool _isClipboardEnabled;
-    
-    public bool IsClipboardEnabled
-    {
-        get => _isClipboardEnabled;
-        set
-        {
-            _isClipboardEnabled = value;
-            OnPropertyChanged(nameof(IsClipboardEnabled));
+    [ObservableProperty]
+    private bool _isClipboardEnabled = Clipboard.IsHistoryEnabled();
 
-            if (IsClipboardEnabled )
-            {
-                PopulateClipboardItems();
-            }
-        }
-    }
+    [ObservableProperty]
+    private string? _message;
+
+    private readonly IGeminiService _geminiService;
 
     public MainViewModel()
     {
-        IsClipboardEnabled = Clipboard.IsHistoryEnabled();
+        _geminiService = new GeminiService();
+
+        PopulateClipboardItems();
+
         Clipboard.HistoryEnabledChanged += ClipboardHistoryEnabledChanged_EventHandler;
         Clipboard.ContentChanged += ClipboardContentChanged_EventHandler;
     }
 
-    private void ClipboardContentChanged_EventHandler(object? sender, object e)
+    private async void ClipboardContentChanged_EventHandler(object? sender, object e)
     {
-        PopulateClipboardItems();
+        await Task.Delay(5000);
+        await PopulateClipboardItems();
     }
 
     private void ClipboardHistoryEnabledChanged_EventHandler(object? sender, object e)
@@ -57,13 +51,12 @@ public partial class MainViewModel : ObservableObject
         IsClipboardEnabled = Clipboard.IsHistoryEnabled();
     }
 
-    
-
-    private async void PopulateClipboardItems()
+    private async Task PopulateClipboardItems()
     {
         if (IsClipboardEnabled)
         {
             ClipboardItems.Clear();
+
             var items = await ClipboardHelper.GetClipboardHistoryItemsAsync();
             if (items.Count > 0 && items != null)
             {
@@ -74,6 +67,7 @@ public partial class MainViewModel : ObservableObject
             }
         }
     }
+
 
     [RelayCommand]
     private async Task EnableClipboardHistory()
@@ -92,6 +86,35 @@ public partial class MainViewModel : ObservableObject
         {
             SelectedItem = clipboardItem;
             IsItemSelected = true;
+        }
+    }
+
+    [RelayCommand]
+    private async Task SendPrompt()
+    {
+        // Send prompt with image
+        // Suggestted prompts
+
+        Chat.Add(new Message
+        {   
+            IsUser = true,
+            Text = Message
+        });
+
+        try
+        {
+            var response = await _geminiService.PromptText($"{Message}: \"{SelectedItem.Text}\"");
+
+            Chat.Add(new Message
+            {
+                IsUser = false,
+                Text = response
+            });
+        }
+        catch (Exception ex)
+        {
+            await Console.Out.WriteLineAsync(ex.Message);
+            throw;
         }
     }
 }

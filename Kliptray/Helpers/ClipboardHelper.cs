@@ -9,8 +9,9 @@ namespace Kliptray.Helpers;
 
 public static class ClipboardHelper
 {
-    private static async Task<ClipboardItem?> AccessItemContent(DataPackageView view)
+    private static async Task<ClipboardItem?> AccessItemContent(ClipboardHistoryItem item)
     {
+        var view = item.Content;
         if (view.Contains(StandardDataFormats.Bitmap))
         {
             var bitmapReference = await view.GetBitmapAsync();
@@ -22,7 +23,8 @@ public static class ClipboardHelper
                 return new ClipboardItem
                 {
                     Image = bitmap,
-                    IsImage = true
+                    IsImage = true,
+                    TimeStamp = item.Timestamp
                 };
             }
         }
@@ -34,11 +36,11 @@ public static class ClipboardHelper
             {
                 return new ClipboardItem
                 {
-                    Text = text
+                    Text = text,
+                    TimeStamp = item.Timestamp
                 };
             }
         }
-
         return null;
     }
 
@@ -52,8 +54,7 @@ public static class ClipboardHelper
         {
             foreach (var item in historyItems.Items)
             {
-                var view = item.Content;
-                var clipboardItem = await AccessItemContent(view);
+                var clipboardItem = await AccessItemContent(item);
                 if (clipboardItem != null)
                 {
                     clipboardItems.Add(clipboardItem);
@@ -63,11 +64,4 @@ public static class ClipboardHelper
 
         return clipboardItems;
     }
-
-    public static async Task<ClipboardItem?> GetCurrentClipboardItemAsync()
-    {
-        var currentItem = await AccessItemContent(Clipboard.GetContent());
-        return currentItem;
-    }
-
 }
