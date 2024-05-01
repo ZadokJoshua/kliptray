@@ -8,6 +8,8 @@
     xmlns:views="using:Kliptray.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-
+    <Window.SystemBackdrop>
+        <MicaBackdrop />
+    </Window.SystemBackdrop>
     <views:MainView/>
 </Window>

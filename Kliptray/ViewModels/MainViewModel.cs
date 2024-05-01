@@ -8,6 +8,13 @@ using Windows.System;
 using CommunityToolkit.Mvvm.Input;
 using Kliptray.Helpers;
 using Kliptray.Services;
+using System.IO;
+using Windows.Graphics.Imaging;
+using Microsoft.UI.Xaml.Media.Imaging;
+using Windows.Storage.Streams;
+using Microsoft.UI.Xaml.Media;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
 
 namespace Kliptray.ViewModels;
 
@@ -17,7 +24,7 @@ public partial class MainViewModel : ObservableObject
     public ObservableCollection<Message> Chat = new();
 
     [ObservableProperty]
-    private ClipboardItem? _selectedItem;
+    private ClipboardItem _selectedItem;
 
     [ObservableProperty]
     private bool _isItemSelected;
@@ -95,25 +102,33 @@ public partial class MainViewModel : ObservableObject
         // Send prompt with image
         // Suggestted prompts
 
-        Chat.Add(new Message
-        {   
-            IsUser = true,
-            Text = Message
-        });
+        //Chat.Add(new Message
+        //{   
+        //    IsUser = true,
+        //    Text = Message
+        //});
 
         try
         {
-            var response = await _geminiService.PromptText($"{Message}: \"{SelectedItem.Text}\"");
-
-            Chat.Add(new Message
+            if (SelectedItem.IsImage)
             {
-                IsUser = false,
-                Text = response
-            });
+                Chat.Add(new Message
+                {
+                    IsUser = true,
+                    Text = Message
+                });
+
+                var response = await _geminiService.PromptImage($"{Message}", SelectedItem.StreamReference);
+
+                Chat.Add(new Message
+                {
+                    IsUser = false,
+                    Text = response
+                });
+            }
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            await Console.Out.WriteLineAsync(ex.Message);
             throw;
         }
     }

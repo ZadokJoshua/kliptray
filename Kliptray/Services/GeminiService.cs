@@ -1,9 +1,14 @@
 ﻿using DotnetGeminiSDK.Client;
 using DotnetGeminiSDK.Client.Interfaces;
 using DotnetGeminiSDK.Config;
+using DotnetGeminiSDK.Model;
+using Kliptray.Helpers;
 using Kliptray.Models;
+using Microsoft.UI.Xaml.Media.Imaging;
+using System;
+using System.IO;
 using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
+using Windows.Storage.Streams;
 
 namespace Kliptray.Services;
 
@@ -12,12 +17,19 @@ public class GeminiService : IGeminiService
     private readonly IGeminiClient _geminiClient;
     public GeminiService()
     {
-        GoogleGeminiConfig config = new GoogleGeminiConfig()
+        GoogleGeminiConfig config = new()
         {
             ApiKey = AppSettings.API_KEY
         };
 
         _geminiClient = new GeminiClient(config);
+    }
+
+    public async Task<string> PromptImage(string text, IRandomAccessStreamWithContentType StreamReference)
+    {
+        var image = File.ReadAllBytes(await ImageHelper.ConvertBytesToPngAsync(StreamReference));
+        var response = await _geminiClient.ImagePrompt(text, image, ImageMimeType.Png);
+        return response.Candidates[0].Content.Parts[0].Text;
     }
 
     public async Task<string> PromptText(string text)

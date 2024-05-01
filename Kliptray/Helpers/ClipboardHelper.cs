@@ -19,12 +19,17 @@ public static class ClipboardHelper
             if (bitmapReference != null)
             {
                 var bitmap = new BitmapImage();
-                await bitmap.SetSourceAsync(await bitmapReference.OpenReadAsync());
+                var randomAccessStreamWithContentType = await bitmapReference.OpenReadAsync();
+                await bitmap.SetSourceAsync(randomAccessStreamWithContentType);
+
+                
+
                 return new ClipboardItem
                 {
                     Image = bitmap,
                     IsImage = true,
-                    TimeStamp = item.Timestamp
+                    TimeStamp = item.Timestamp,
+                    StreamReference = randomAccessStreamWithContentType
                 };
             }
         }
