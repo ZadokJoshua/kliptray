@@ -12,6 +12,8 @@
     <EnableMsixTooling>true</EnableMsixTooling>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Assets\icon-clipboard.svg" />
+    <None Remove="Assets\icon-kliptray-cb.png" />
     <None Remove="Assets\vector-bg.png" />
     <None Remove="Views\MainView.xaml" />
   </ItemGroup>

@@ -99,26 +99,32 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task SendPrompt()
     {
-        // Send prompt with image
-        // Suggestted prompts
-
-        //Chat.Add(new Message
-        //{   
-        //    IsUser = true,
-        //    Text = Message
-        //});
+        if (string.IsNullOrEmpty(Message)) return;
 
         try
         {
-            if (SelectedItem.IsImage)
+            Chat.Add(new Message
             {
+                IsUser = true,
+                Text = Message
+            });
+
+            var promptText = Message;
+            Message = string.Empty;
+
+            if (SelectedItem.IsImage && SelectedItem.StreamReference != null)
+            {
+                var response = await _geminiService.PromptImage($"{promptText}", SelectedItem.StreamReference);
+
                 Chat.Add(new Message
                 {
-                    IsUser = true,
-                    Text = Message
+                    IsUser = false,
+                    Text = response
                 });
-
-                var response = await _geminiService.PromptImage($"{Message}", SelectedItem.StreamReference);
+            }
+            else
+            {
+                var response = await _geminiService.PromptText($"{promptText}");
 
                 Chat.Add(new Message
                 {
@@ -129,7 +135,11 @@ public partial class MainViewModel : ObservableObject
         }
         catch (Exception e)
         {
-            throw;
+            Chat.Add(new Message
+            {
+                IsUser = false,
+                Text = $"Exception: {e.Message}"
+            });
         }
     }
 }

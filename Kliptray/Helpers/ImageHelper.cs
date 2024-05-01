@@ -36,4 +36,12 @@ public static class ImageHelper
             return file.Path;
         }
     }
+
+    public static void DeleteFile(string filePath)
+    {
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
+    }
 }

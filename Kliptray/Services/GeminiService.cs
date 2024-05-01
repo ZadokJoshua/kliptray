@@ -4,8 +4,6 @@ using DotnetGeminiSDK.Config;
 using DotnetGeminiSDK.Model;
 using Kliptray.Helpers;
 using Kliptray.Models;
-using Microsoft.UI.Xaml.Media.Imaging;
-using System;
 using System.IO;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
@@ -30,6 +28,8 @@ public class GeminiService : IGeminiService
         var image = File.ReadAllBytes(await ImageHelper.ConvertBytesToPngAsync(StreamReference));
         var response = await _geminiClient.ImagePrompt(text, image, ImageMimeType.Png);
         return response.Candidates[0].Content.Parts[0].Text;
+
+
     }
 
     public async Task<string> PromptText(string text)
