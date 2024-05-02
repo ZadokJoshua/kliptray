@@ -21,8 +21,6 @@ public record ClipboardItem
 
     public IRandomAccessStreamWithContentType? StreamReference { get; set; }
 
-    public ObservableCollection<Message> Chat => new();
-
     public string[] SuggestedPrompts => IsImage ? 
         new string[]
             {

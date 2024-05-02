@@ -9,6 +9,8 @@ using CommunityToolkit.Mvvm.Input;
 using Kliptray.Helpers;
 using Kliptray.Services;
 using System.Linq;
+using System.Collections.Generic;
+using CommunityToolkit.Common.Collections;
 
 namespace Kliptray.ViewModels;
 
@@ -31,13 +33,18 @@ public partial class MainViewModel : ObservableObject
 
     private readonly IGeminiService _geminiService;
 
-    public ObservableCollection<ClipboardItem> ClipboardItems { get; set; } = new();
+    public ObservableCollection<ClipboardItem> ClipboardItems { get; set; }
+    
     public ObservableCollection<Message> Chat { get; set; } = new();
+
+    public Dictionary<string, ObservableCollection<Message>> ItemChats { get; set; } = new();
 
     public MainViewModel()
     {
         _geminiService = new GeminiService();
         PopulateClipboardItems();
+
+        ClipboardItems = new();
 
         Clipboard.HistoryEnabledChanged += ClipboardHistoryEnabledChanged_EventHandler;
         Clipboard.ContentChanged += ClipboardContentChanged_EventHandler;
@@ -97,6 +104,9 @@ public partial class MainViewModel : ObservableObject
     {
         if (string.IsNullOrEmpty(Message) && !IsItemSelected) return;
 
+        
+
+
         Chat.Add(new Message
         {
             IsUser = true,
@@ -141,13 +151,20 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    private void ShowTextOnly() =>
-        ClipboardItems = (ObservableCollection<ClipboardItem>)ClipboardItems.Where(c => !(c.IsImage));
+    //[RelayCommand]
+    //private void ShowTextOnly() => ClipboardItems = (ObservableCollection<ClipboardItem>)ClipboardItems.Where(c => !(c.IsImage));
 
     [RelayCommand]
-    private void ShowImagesOnly() =>
-        ClipboardItems = (ObservableCollection<ClipboardItem>)ClipboardItems.Where(c => c.IsImage);
+    private void ShowImagesOnly()
+    {
+        IList<ClipboardItem> items = new List<ClipboardItem>();
+        var clipboardItems = ClipboardItems.Where(c => c.IsImage);
+        ClipboardItems.Clear();
+        foreach (var clipboardItem in clipboardItems)
+        {
+            ClipboardItems.Add(clipboardItem);
+        }
+    }
 
     [RelayCommand]
     private async Task RecommendedPrompt(int index)
