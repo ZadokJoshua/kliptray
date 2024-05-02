@@ -4,44 +4,46 @@ using Windows.Graphics.Imaging;
 using Windows.Storage.Streams;
 using Windows.Storage;
 using System;
+using System.Collections.Generic;
 
 namespace Kliptray.Helpers;
 
 public static class ImageHelper
 {
+    private static StorageFolder _parentfolder = KnownFolders.DocumentsLibrary;
     public static async Task<string> ConvertBytesToPngAsync(IRandomAccessStreamWithContentType randomAccessStreamWithContentType)
     {
         BitmapDecoder decoder = await BitmapDecoder.CreateAsync(randomAccessStreamWithContentType);
         var pixelData = await decoder.GetPixelDataAsync();
         byte[] bytes = pixelData.DetachPixelData();
 
-        StorageFolder folder = KnownFolders.PicturesLibrary; // You can change this to the desired folder
-        StorageFile file = await folder.CreateFileAsync("image.png", CreationCollisionOption.GenerateUniqueName);
+        
+        StorageFolder folder = await _parentfolder.CreateFolderAsync("Kliptray", CreationCollisionOption.OpenIfExists);
 
-        using (Stream fileStream = await file.OpenStreamForWriteAsync())
-        {
-            // Create encoder for PNG
-            var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, fileStream.AsRandomAccessStream());
+        StorageFile file = await folder.CreateFileAsync("promptimage.png", CreationCollisionOption.GenerateUniqueName);
 
-            // Get pixel data from decoder and set them for encoder
-            encoder.SetPixelData(decoder.BitmapPixelFormat,
-                                 BitmapAlphaMode.Ignore,
-                                 decoder.OrientedPixelWidth,
-                                 decoder.OrientedPixelHeight,
-                                 decoder.DpiX, decoder.DpiY,
-                                 bytes);
+        using Stream fileStream = await file.OpenStreamForWriteAsync();
+        var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, fileStream.AsRandomAccessStream());
 
-            await encoder.FlushAsync();
+        encoder.SetPixelData(decoder.BitmapPixelFormat,
+                             BitmapAlphaMode.Ignore,
+                             decoder.OrientedPixelWidth,
+                             decoder.OrientedPixelHeight,
+                             decoder.DpiX, decoder.DpiY,
+                             bytes);
 
-            return file.Path;
-        }
+        await encoder.FlushAsync();
+        return file.Path;
     }
 
-    public static void DeleteFile(string filePath)
+    public static async Task DeleteImageFiles()
     {
-        if (File.Exists(filePath))
+        StorageFolder folder = await _parentfolder.GetFolderAsync(Path.Combine(_parentfolder.Path, "Kliptray"));
+        IReadOnlyList<StorageFile>  imageFiles = await folder.GetFilesAsync();
+
+        for (int i = 0; i < imageFiles.Count; i++)
         {
-            File.Delete(filePath);
+            await imageFiles[i].DeleteAsync(StorageDeleteOption.Default);
         }
     }
 }

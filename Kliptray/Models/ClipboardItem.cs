@@ -1,13 +1,16 @@
-﻿using Microsoft.UI.Xaml.Media;
+﻿using Kliptray.Helpers;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
-using System.Buffers.Text;
+using System.Collections.ObjectModel;
 using Windows.Storage.Streams;
 
 namespace Kliptray.Models;
 
 public record ClipboardItem
 {
+    public string? Id { get; set; }
+    public string? ItemId { get; set; } = Guid.NewGuid().ToString();
+
     public DateTimeOffset TimeStamp { get; set; }
 
     public BitmapImage? Image { get; set; }
@@ -17,4 +20,18 @@ public record ClipboardItem
     public bool IsImage { get; set; }
 
     public IRandomAccessStreamWithContentType? StreamReference { get; set; }
+
+    public ObservableCollection<Message> Chat => new();
+
+    public string[] SuggestedPrompts => IsImage ? 
+        new string[]
+            {
+                "What's in this image?",
+                "Extract text"
+            } :
+        new string[]
+            {
+                "Summarize this text",
+                "What does this mean"
+            };
 }

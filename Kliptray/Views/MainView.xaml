@@ -14,6 +14,8 @@
     xmlns:viewmodel="using:Kliptray.ViewModels"
     mc:Ignorable="d">
     <UserControl.Resources>
+        <x:Int32 x:Key="IntZero">0</x:Int32>
+        <x:Int32 x:Key="IntOne">1</x:Int32>
         <converters:BoolToVisibilityConverter
             x:Key="ContentBoolToVisibilityConverter"
             FalseValue="Collapsed"
@@ -30,6 +32,18 @@
             x:Key="UserOrAITextConverter"
             FalseValue="🤖 Gemini"
             TrueValue="👤 User" />
+        <converters:BoolToObjectConverter
+            x:Key="DatatypeTextConverter"
+            FalseValue="Text"
+            TrueValue="Image" />
+        <converters:BoolToVisibilityConverter
+            x:Key="ProgressBoolToVisibilityConverter"
+            FalseValue="Collapsed"
+            TrueValue="Visible" />
+        <converters:BoolToObjectConverter
+            x:Key="ItemIconConverter"
+            FalseValue="&#xE97E;"
+            TrueValue="&#xE8B9;" />
     </UserControl.Resources>
     <Grid>
         <SplitView
@@ -41,11 +55,11 @@
 
             <!--#region  PANE VIEW-->
             <SplitView.Pane>
-                <Grid Margin="10" RowSpacing="8">
+                <Grid Margin="10" RowSpacing="2">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid
                         Grid.Row="0"
@@ -65,14 +79,14 @@
                             <PathIcon Data="M17.25,19 C17.6642136,19 18,19.3357864 18,19.75 C18,20.1642136 17.6642136,20.5 17.25,20.5 L10.75,20.5 C10.3357864,20.5 10,20.1642136 10,19.75 C10,19.3357864 10.3357864,19 10.75,19 L17.25,19 Z M21.25,13 C21.6642136,13 22,13.3357864 22,13.75 C22,14.1642136 21.6642136,14.5 21.25,14.5 L6.75,14.5 C6.33578644,14.5 6,14.1642136 6,13.75 C6,13.3357864 6.33578644,13 6.75,13 L21.25,13 Z M24.25,7 C24.6642136,7 25,7.33578644 25,7.75 C25,8.16421356 24.6642136,8.5 24.25,8.5 L3.75,8.5 C3.33578644,8.5 3,8.16421356 3,7.75 C3,7.33578644 3.33578644,7 3.75,7 L24.25,7 Z" />
                             <Button.Flyout>
                                 <MenuFlyout Placement="BottomEdgeAlignedLeft">
-                                    <MenuFlyoutItem Text="Texts" >
+                                    <MenuFlyoutItem Command="{x:Bind ViewModel.ShowTextOnlyCommand}" Text="Texts">
                                         <MenuFlyoutItem.Icon>
-                                            <FontIcon Glyph="&#xE97E;"/>
+                                            <FontIcon Glyph="&#xE97E;" />
                                         </MenuFlyoutItem.Icon>
                                     </MenuFlyoutItem>
-                                    <MenuFlyoutItem Text="Images">
+                                    <MenuFlyoutItem Command="{x:Bind ViewModel.ShowImagesOnlyCommand}" Text="Images">
                                         <MenuFlyoutItem.Icon>
-                                            <FontIcon Glyph="&#xE8B9;"/>
+                                            <FontIcon Glyph="&#xE8B9;" />
                                         </MenuFlyoutItem.Icon>
                                     </MenuFlyoutItem>
                                 </MenuFlyout>
@@ -88,12 +102,8 @@
                             </Button.Flyout>
                         </Button>
                     </Grid>
-                    <AutoSuggestBox
-                        Grid.Row="1"
-                        PlaceholderText="Search"
-                        QueryIcon="Find" />
                     <ScrollViewer
-                        Grid.Row="2"
+                        Grid.Row="1"
                         VerticalScrollBarVisibility="Auto"
                         VerticalScrollMode="Auto"
                         Visibility="{x:Bind ViewModel.IsClipboardEnabled, Mode=OneWay, Converter={StaticResource PaneListViewBoolToVisibilityConverter}}">
@@ -132,17 +142,32 @@
                                                 Grid.Row="0"
                                                 HorizontalAlignment="Left"
                                                 Source="{Binding Image}" />
-                                            <Border
-                                                Grid.Row="1"
-                                                HorizontalAlignment="Left"
-                                                Background="#458588"
-                                                CornerRadius="8">
-                                                <TextBlock
-                                                    Margin="4"
-                                                    FontSize="11"
-                                                    Foreground="Black"
-                                                    Text="{Binding TimeStamp}" />
-                                            </Border>
+                                            <Grid Grid.Row="1" ColumnSpacing="2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Border
+                                                    Grid.Column="0"
+                                                    HorizontalAlignment="Left"
+                                                    Background="#458588"
+                                                    CornerRadius="4">
+                                                    <TextBlock
+                                                        Margin="2"
+                                                        FontSize="11"
+                                                        Foreground="Black"
+                                                        Text="{Binding TimeStamp.DateTime}" />
+                                                </Border>
+                                                <FontIcon
+                                                    Grid.Column="1"
+                                                    Margin="2"
+                                                    HorizontalAlignment="Right"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    Foreground="OrangeRed"
+                                                    Glyph="{Binding IsImage, Converter={StaticResource ItemIconConverter}}" />
+                                            </Grid>
+
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -158,7 +183,7 @@
 
                     <!--#region CLIPBOARD NOT ENABLED VIEW-->
                     <StackPanel
-                        Grid.Row="2"
+                        Grid.Row="1"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Orientation="Vertical"
@@ -176,6 +201,14 @@
                             Content="Enable Clipboard History" />
                     </StackPanel>
                     <!--#endregion-->
+
+                    <StackPanel
+                        Grid.Row="2"
+                        Orientation="Horizontal"
+                        Spacing="2">
+                        <TextBlock FontSize="11" Text="Total items in Clipboard:" />
+                        <TextBlock FontSize="11" Text="{x:Bind ViewModel.ClipboardItems.Count, Mode=OneWay}" />
+                    </StackPanel>
                 </Grid>
             </SplitView.Pane>
             <!--#endregion-->
@@ -184,7 +217,8 @@
             <Grid
                 Margin="10,10,0,10"
                 Background="#3c3836"
-                CornerRadius="8,0,0,8">
+                CornerRadius="8,0,0,8"
+                Opacity=".9">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
@@ -198,37 +232,48 @@
                     Stretch="UniformToFill" />
 
                 <Grid
+                    x:Name="ContentAndChatGrid"
                     Grid.Row="0"
                     Margin="20"
                     Padding="8"
                     Background="#1d2021"
                     ColumnSpacing="8"
                     CornerRadius="8"
-                    Opacity=".9"
+                    Opacity="1"
                     RowSpacing="8"
                     Visibility="{x:Bind ViewModel.IsItemSelected, Mode=OneWay, Converter={StaticResource ContentBoolToVisibilityConverter}}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
-                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="2*" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="2*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <ScrollView Grid.Column="0">
+                    <ScrollViewer
+                        Grid.Row="0"
+                        Grid.Column="0"
+                        HorizontalScrollBarVisibility="Visible"
+                        VerticalScrollBarVisibility="Visible"
+                        ZoomMode="Enabled">
                         <Image
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
-                            Source="{x:Bind ViewModel.SelectedItem.Image, Mode=OneWay}"
-                            Stretch="Uniform" />
-                    </ScrollView>
+                            Source="{x:Bind ViewModel.SelectedItem.Image, Mode=OneWay}" />
+                    </ScrollViewer>
 
-                    <ScrollView Grid.Column="0">
+                    <ScrollView
+                        Grid.Column="0"
+                        HorizontalAlignment="Left"
+                        HorizontalScrollBarVisibility="Visible"
+                        VerticalScrollBarVisibility="Visible">
                         <RichTextBlock
                             HorizontalAlignment="Left"
                             VerticalAlignment="Top"
-                            FontSize="20"
-                            Style="{StaticResource BaseRichTextBlockStyle}">
+                            FontSize="16"
+                            Style="{StaticResource BaseRichTextBlockStyle}"
+                            TextWrapping="Wrap">
                             <Paragraph>
                                 <Run Text="{x:Bind ViewModel.SelectedItem.Text, Mode=OneWay}" />
                             </Paragraph>
@@ -239,50 +284,85 @@
                         Grid.Column="1"
                         Orientation="Vertical"
                         Spacing="3">
-                        <TextBlock FontWeight="SemiBold" Text="Datatype: Text" />
-                        <TextBlock FontWeight="SemiBold" Text="Time: 23/23/452" />
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock FontWeight="Medium" Text="Datatype:" />
+                            <TextBlock Text="{x:Bind ViewModel.SelectedItem.IsImage, Mode=OneWay, Converter={StaticResource DatatypeTextConverter}}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock FontWeight="Medium" Text="Time added:" />
+                            <TextBlock Text="{x:Bind ViewModel.SelectedItem.TimeStamp.DateTime, Mode=OneWay}" />
+                        </StackPanel>
                         <AppBarSeparator />
-                        <TextBlock FontWeight="SemiBold" Text="✨Recommended prompts" />
-                        <ScrollView>
-                            <StackPanel Spacing="8">
-                                <Button HorizontalAlignment="Stretch" Style="{StaticResource AccentButtonStyle}">
-                                    <TextBlock Text="What is in this image?" TextWrapping="Wrap" />
-                                </Button>
-                                <Button HorizontalAlignment="Stretch" Style="{StaticResource AccentButtonStyle}">
-                                    <TextBlock Text="What is in this image?" TextWrapping="Wrap" />
-                                </Button>
-                            </StackPanel>
-                        </ScrollView>
+                        <TextBlock
+                            FontWeight="Medium"
+                            Text="✨Recommended prompts"
+                            TextWrapping="Wrap" />
+                        <StackPanel Spacing="8">
+                            <Button
+                                HorizontalAlignment="Stretch"
+                                Command="{x:Bind ViewModel.RecommendedPromptCommand}"
+                                CommandParameter="{StaticResource IntZero}"
+                                Style="{StaticResource AccentButtonStyle}">
+                                <TextBlock Text="{x:Bind ViewModel.SelectedItem.SuggestedPrompts[0], Mode=OneWay}" TextWrapping="Wrap" />
+                            </Button>
+                            <Button
+                                HorizontalAlignment="Stretch"
+                                Command="{x:Bind ViewModel.RecommendedPromptCommand}"
+                                CommandParameter="{StaticResource IntOne}"
+                                Style="{StaticResource AccentButtonStyle}">
+                                <TextBlock Text="{x:Bind ViewModel.SelectedItem.SuggestedPrompts[1], Mode=OneWay}" TextWrapping="Wrap" />
+                            </Button>
+                        </StackPanel>
                     </StackPanel>
 
-                    <!--#region CHATS-->
-                    <ListView
+                    <Border
                         Grid.Row="1"
                         Grid.ColumnSpan="2"
-                        ItemsSource="{x:Bind ViewModel.Chat}"
-                        SelectionMode="None"
-                        SingleSelectionFollowsFocus="False">
-                        <ListView.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <ItemsStackPanel VerticalAlignment="Bottom" ItemsUpdatingScrollMode="KeepLastItemInView" />
-                            </ItemsPanelTemplate>
-                        </ListView.ItemsPanel>
+                        BorderBrush="{StaticResource AccentAcrylicInAppFillColorDefaultBrush}"
+                        BorderThickness="1."
+                        Opacity=".2" />
 
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="model:Message">
-                                <StackPanel Margin="0,4" Background="Transparent">
-                                    <TextBlock
-                                        FontSize="15"
-                                        FontWeight="SemiBold"
-                                        Text="{x:Bind IsUser, Mode=OneWay, Converter={StaticResource UserOrAITextConverter}}" />
-                                    <tkcontrols:MarkdownTextBlock
-                                        x:Name="Mkdown"
-                                        Background="Transparent"
-                                        Text="{x:Bind Text}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                    <!--#region CHATS-->
+                    <!--  Progress Bar  -->
+                    <Grid Grid.Row="2" Grid.ColumnSpan="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <ListView
+                            Grid.Row="0"
+                            ItemsSource="{x:Bind ViewModel.Chat}"
+                            SelectionMode="None"
+                            SingleSelectionFollowsFocus="False">
+                            <ListView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsStackPanel VerticalAlignment="Bottom" ItemsUpdatingScrollMode="KeepLastItemInView" />
+                                </ItemsPanelTemplate>
+                            </ListView.ItemsPanel>
+
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="model:Message">
+                                    <StackPanel Margin="0,4" Background="Transparent">
+                                        <TextBlock
+                                            FontWeight="SemiBold"
+                                            Foreground="{StaticResource AccentAAFillColorDefaultBrush}"
+                                            Text="{x:Bind IsUser, Mode=OneWay, Converter={StaticResource UserOrAITextConverter}}" />
+                                        <tkcontrols:MarkdownTextBlock
+                                            x:Name="Mkdown"
+                                            Background="Transparent"
+                                            Text="{x:Bind Text}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <ProgressBar
+                            Grid.Row="1"
+                            Margin="15,0"
+                            IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                            IsIndeterminate="True"
+                            Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource ProgressBoolToVisibilityConverter}}" />
+                    </Grid>
                     <!--#endregion-->
                 </Grid>
 
@@ -300,26 +380,33 @@
                         Grid.Column="0"
                         HorizontalAlignment="Stretch"
                         PlaceholderText="Ask a question about this clipboard item"
-                        Text="{x:Bind ViewModel.Message, Mode=TwoWay}" />
+                        Text="{x:Bind ViewModel.Message, Mode=TwoWay}">
+                        <TextBox.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="Enter" Modifiers="None">
+                                <Interactivity:Interaction.Behaviors>
+                                    <Core:EventTriggerBehavior EventName="Invoked">
+                                        <Core:InvokeCommandAction Command="{x:Bind ViewModel.SendPromptCommand}" />
+                                    </Core:EventTriggerBehavior>
+                                </Interactivity:Interaction.Behaviors>
+                            </KeyboardAccelerator>
+                        </TextBox.KeyboardAccelerators>
+                    </TextBox>
                     <Button
                         Grid.Column="1"
                         Command="{x:Bind ViewModel.SendPromptCommand}"
                         Style="{StaticResource AccentButtonStyle}">
                         <PathIcon Data="M3.78963301,2.77233335 L24.8609339,12.8499121 C25.4837277,13.1477699 25.7471402,13.8941055 25.4492823,14.5168992 C25.326107,14.7744476 25.1184823,14.9820723 24.8609339,15.1052476 L3.78963301,25.1828263 C3.16683929,25.4806842 2.42050372,25.2172716 2.12264586,24.5944779 C1.99321184,24.3238431 1.96542524,24.015685 2.04435886,23.7262618 L4.7030903,13.9775798 L2.04435886,4.22889788 C1.8627142,3.56286745 2.25538645,2.87569101 2.92141688,2.69404635 C3.21084015,2.61511273 3.51899823,2.64289932 3.78963301,2.77233335 Z M3.63522914,4.36121177 L6.058,13.249 L17,13.25 C17.3796958,13.25 17.693491,13.5321539 17.7431534,13.8982294 L17.75,14 C17.75,14.3796958 17.4678461,14.693491 17.1017706,14.7431534 L17,14.75 L6.046,14.749 L3.63522914,23.5939479 L23.7421805,13.9775798 L3.63522914,4.36121177 Z" />
                         <Button.KeyboardAccelerators>
-                            <KeyboardAccelerator Key="Enter" />
+                            <KeyboardAccelerator Key="Enter" Modifiers="None">
+                                <Interactivity:Interaction.Behaviors>
+                                    <Core:EventTriggerBehavior EventName="Invoked">
+                                        <Core:InvokeCommandAction Command="{x:Bind ViewModel.SendPromptCommand}" />
+                                    </Core:EventTriggerBehavior>
+                                </Interactivity:Interaction.Behaviors>
+                            </KeyboardAccelerator>
                         </Button.KeyboardAccelerators>
                     </Button>
                 </Grid>
-                <!--<AutoSuggestBox>
-                    <Interactivity:Interaction.Behaviors>
-                        <Core:EventTriggerBehavior EventName="QuerySubmitted">
-                            <Core:EventTriggerBehavior.Actions>
-                                <Core:InvokeCommandAction Command="{x:Bind ViewModel.SendPromptCommand}" />
-                            </Core:EventTriggerBehavior.Actions>
-                        </Core:EventTriggerBehavior>
-                    </Interactivity:Interaction.Behaviors>
-                </AutoSuggestBox>-->
             </Grid>
             <!--#endregion-->
         </SplitView>

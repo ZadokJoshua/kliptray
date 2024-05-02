@@ -1,17 +1,11 @@
+using Kliptray.Helpers;
+using Microsoft.UI;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+using System.Threading.Tasks;
+using WinRT.Interop;
 
 namespace Kliptray.Views;
 
@@ -26,5 +20,24 @@ public sealed partial class MainWindow : Window
 
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
+        Title = "Kliptray";
+
+        this.Activated += MainWindow_Activated;
+        // this.Closed += MainWindow_Closed;
+    }
+
+    //private async void MainWindow_Closed(object sender, WindowEventArgs args)
+    //{
+        //await ImageHelper.DeleteImageFiles();
+    //}
+
+    private async void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
+    {
+        IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        WindowId windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
+        AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
+        appWindow.SetIcon(@"Assets\icon-kliptray-cb.ico");
+
+        await ImageHelper.DeleteImageFiles();
     }
 }

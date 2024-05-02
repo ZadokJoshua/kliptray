@@ -26,6 +26,7 @@ public static class ClipboardHelper
 
                 return new ClipboardItem
                 {
+                    Id = item.Id,
                     Image = bitmap,
                     IsImage = true,
                     TimeStamp = item.Timestamp,

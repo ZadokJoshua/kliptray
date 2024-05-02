@@ -8,26 +8,20 @@ using Windows.System;
 using CommunityToolkit.Mvvm.Input;
 using Kliptray.Helpers;
 using Kliptray.Services;
-using System.IO;
-using Windows.Graphics.Imaging;
-using Microsoft.UI.Xaml.Media.Imaging;
-using Windows.Storage.Streams;
-using Microsoft.UI.Xaml.Media;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading;
+using System.Linq;
 
 namespace Kliptray.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
-    public ObservableCollection<ClipboardItem> ClipboardItems = new();
-    public ObservableCollection<Message> Chat = new();
-
     [ObservableProperty]
-    private ClipboardItem _selectedItem;
+    private ClipboardItem? _selectedItem;
 
     [ObservableProperty]
     private bool _isItemSelected;
+
+    [ObservableProperty]
+    private bool _isBusy;
 
     [ObservableProperty]
     private bool _isClipboardEnabled = Clipboard.IsHistoryEnabled();
@@ -37,10 +31,12 @@ public partial class MainViewModel : ObservableObject
 
     private readonly IGeminiService _geminiService;
 
+    public ObservableCollection<ClipboardItem> ClipboardItems { get; set; } = new();
+    public ObservableCollection<Message> Chat { get; set; } = new();
+
     public MainViewModel()
     {
         _geminiService = new GeminiService();
-
         PopulateClipboardItems();
 
         Clipboard.HistoryEnabledChanged += ClipboardHistoryEnabledChanged_EventHandler;
@@ -49,8 +45,8 @@ public partial class MainViewModel : ObservableObject
 
     private async void ClipboardContentChanged_EventHandler(object? sender, object e)
     {
-        await Task.Delay(5000);
-        await PopulateClipboardItems();
+        await Task.Delay(3000);
+        PopulateClipboardItems();
     }
 
     private void ClipboardHistoryEnabledChanged_EventHandler(object? sender, object e)
@@ -58,14 +54,14 @@ public partial class MainViewModel : ObservableObject
         IsClipboardEnabled = Clipboard.IsHistoryEnabled();
     }
 
-    private async Task PopulateClipboardItems()
+    private async void PopulateClipboardItems()
     {
         if (IsClipboardEnabled)
         {
             ClipboardItems.Clear();
 
             var items = await ClipboardHelper.GetClipboardHistoryItemsAsync();
-            if (items.Count > 0 && items != null)
+            if (items.Count > 0 && items is not null)
             {
                 foreach (var item in items)
                 {
@@ -99,39 +95,37 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task SendPrompt()
     {
-        if (string.IsNullOrEmpty(Message)) return;
+        if (string.IsNullOrEmpty(Message) && !IsItemSelected) return;
+
+        Chat.Add(new Message
+        {
+            IsUser = true,
+            Text = Message
+        });
+
+        var promptText = Message;
+        Message = string.Empty;
+
+        IsBusy = true;
 
         try
         {
-            Chat.Add(new Message
-            {
-                IsUser = true,
-                Text = Message
-            });
-
-            var promptText = Message;
-            Message = string.Empty;
+            var response = string.Empty;
 
             if (SelectedItem.IsImage && SelectedItem.StreamReference != null)
             {
-                var response = await _geminiService.PromptImage($"{promptText}", SelectedItem.StreamReference);
-
-                Chat.Add(new Message
-                {
-                    IsUser = false,
-                    Text = response
-                });
+                response = await _geminiService.PromptImage($"{promptText}", SelectedItem.StreamReference);
             }
             else
             {
-                var response = await _geminiService.PromptText($"{promptText}");
-
-                Chat.Add(new Message
-                {
-                    IsUser = false,
-                    Text = response
-                });
+                response = await _geminiService.PromptText($"{promptText}: \"{SelectedItem.Text}\"");
             }
+
+            Chat.Add(new Message
+            {
+                IsUser = false,
+                Text = response
+            });
         }
         catch (Exception e)
         {
@@ -141,5 +135,26 @@ public partial class MainViewModel : ObservableObject
                 Text = $"Exception: {e.Message}"
             });
         }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private void ShowTextOnly() =>
+        ClipboardItems = (ObservableCollection<ClipboardItem>)ClipboardItems.Where(c => !(c.IsImage));
+
+    [RelayCommand]
+    private void ShowImagesOnly() =>
+        ClipboardItems = (ObservableCollection<ClipboardItem>)ClipboardItems.Where(c => c.IsImage);
+
+    [RelayCommand]
+    private async Task RecommendedPrompt(int index)
+    {
+        if (SelectedItem is null) return;
+
+        Message = SelectedItem.SuggestedPrompts[index];
+        await SendPrompt();
     }
 }
