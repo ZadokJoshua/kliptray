@@ -11,7 +11,7 @@ namespace Kliptray.Helpers;
 
 public static class ClipboardHelper
 {
-    private static DateTimeOffset _previousImageDateTime;
+    //private static DateTimeOffset _previousImageDateTime;
     private static async Task<ClipboardItem?> AccessItemContent(ClipboardHistoryItem item)
     {
         var view = item.Content;
