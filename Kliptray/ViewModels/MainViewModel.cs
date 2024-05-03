@@ -10,6 +10,7 @@ using Kliptray.Helpers;
 using Kliptray.Services;
 using System.Linq;
 using System.Collections.Generic;
+using Microsoft.UI.Xaml.Data;
 
 namespace Kliptray.ViewModels;
 
@@ -198,19 +199,19 @@ public partial class MainViewModel : ObservableObject
         await SendPrompt();
     }
 
-    [RelayCommand]
-    private void ShowTextOnly() => ClipboardItems = (ObservableCollection<ClipboardItem>)ClipboardItems.Where(c => !(c.IsImage));
+    //[RelayCommand]
+    //private void ShowTextOnly() => ClipboardItems = (ObservableCollection<ClipboardItem>)ClipboardItems.Where(c => !(c.IsImage));
 
-    [RelayCommand]
-    private void ShowImagesOnly()
-    {
-        IList<ClipboardItem> items = new List<ClipboardItem>();
-        var clipboardItems = ClipboardItems.Where(c => c.IsImage);
-        ClipboardItems.Clear();
-        foreach (var clipboardItem in clipboardItems)
-        {
-            ClipboardItems.Add(clipboardItem);
-        }
-    }
+    //[RelayCommand]
+    //private void ShowImagesOnly()
+    //{
+    //    IList<ClipboardItem> items = new List<ClipboardItem>();
+    //    var clipboardItems = ClipboardItems.Where(c => c.IsImage);
+    //    ClipboardItems.Clear();
+    //    foreach (var clipboardItem in clipboardItems)
+    //    {
+    //        ClipboardItems.Add(clipboardItem);
+    //    }
+    //}
 
 }

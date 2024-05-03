@@ -4,11 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
+using Windows.Storage.Streams;
+using WinRT;
 
 namespace Kliptray.Helpers;
 
 public static class ClipboardHelper
 {
+    private static DateTimeOffset _previousImageDateTime;
     private static async Task<ClipboardItem?> AccessItemContent(ClipboardHistoryItem item)
     {
         var view = item.Content;
@@ -22,7 +25,12 @@ public static class ClipboardHelper
                 var randomAccessStreamWithContentType = await bitmapReference.OpenReadAsync();
                 await bitmap.SetSourceAsync(randomAccessStreamWithContentType);
 
-                
+                if(IsDuplicateScreenshot(_previousImageDateTime, item.Timestamp)) 
+                {
+                    return null;
+                }
+
+                _previousImageDateTime = item.Timestamp;
 
                 return new ClipboardItem
                 {
@@ -69,5 +77,11 @@ public static class ClipboardHelper
         }
 
         return clipboardItems;
+    }
+
+    private static bool IsDuplicateScreenshot(DateTimeOffset previousImageDT, DateTimeOffset currentImageDT)
+    {
+        _previousImageDateTime = currentImageDT;
+        return (previousImageDT - currentImageDT) < TimeSpan.FromSeconds(1);
     }
 }
