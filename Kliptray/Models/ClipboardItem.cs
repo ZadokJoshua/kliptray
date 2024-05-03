@@ -1,7 +1,5 @@
-﻿using Kliptray.Helpers;
-using Microsoft.UI.Xaml.Media.Imaging;
+﻿using Microsoft.UI.Xaml.Media.Imaging;
 using System;
-using System.Collections.ObjectModel;
 using Windows.Storage.Streams;
 
 namespace Kliptray.Models;
@@ -9,7 +7,7 @@ namespace Kliptray.Models;
 public record ClipboardItem
 {
     public string? Id { get; set; }
-    public string? ItemId { get; set; } = Guid.NewGuid().ToString();
+    public string ItemId { get; set; } = Guid.NewGuid().ToString();
 
     public DateTimeOffset TimeStamp { get; set; }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kliptray.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,4 +9,6 @@ namespace Kliptray.Services;
 
 public interface IDataService
 {
+    Task<List<Message>> GetChatsAsync(string id);
+    Task AddNewMessage(string id, Message message);
 }

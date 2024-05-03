@@ -10,14 +10,18 @@ using Kliptray.Helpers;
 using Kliptray.Services;
 using System.Linq;
 using System.Collections.Generic;
-using CommunityToolkit.Common.Collections;
 
 namespace Kliptray.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
+    private readonly IGeminiService _geminiService;
+
     [ObservableProperty]
     private ClipboardItem? _selectedItem;
+
+    [ObservableProperty]
+    private bool _shouldRefreshListView;
 
     [ObservableProperty]
     private bool _isItemSelected;
@@ -31,29 +35,22 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string? _message;
 
-    private readonly IGeminiService _geminiService;
-
-    public ObservableCollection<ClipboardItem> ClipboardItems { get; set; }
+    public ObservableCollection<ClipboardItem> ClipboardItems { get; set; } = new();
     
     public ObservableCollection<Message> Chat { get; set; } = new();
-
-    public Dictionary<string, ObservableCollection<Message>> ItemChats { get; set; } = new();
 
     public MainViewModel()
     {
         _geminiService = new GeminiService();
         PopulateClipboardItems();
 
-        ClipboardItems = new();
-
         Clipboard.HistoryEnabledChanged += ClipboardHistoryEnabledChanged_EventHandler;
         Clipboard.ContentChanged += ClipboardContentChanged_EventHandler;
     }
 
-    private async void ClipboardContentChanged_EventHandler(object? sender, object e)
+    private void ClipboardContentChanged_EventHandler(object? sender, object e)
     {
-        await Task.Delay(3000);
-        PopulateClipboardItems();
+        if (!ShouldRefreshListView) ShouldRefreshListView = true;
     }
 
     private void ClipboardHistoryEnabledChanged_EventHandler(object? sender, object e)
@@ -96,6 +93,23 @@ public partial class MainViewModel : ObservableObject
         {
             SelectedItem = clipboardItem;
             IsItemSelected = true;
+
+            LoadChat(clipboardItem.ItemId);
+        }
+    }
+
+    private void LoadChat(string itemId)
+    {
+        Chat.Clear();
+        if (ChatData.Chats.ContainsKey(itemId))
+        {
+            var exitingMessages = ChatData.Chats[itemId];
+
+
+            foreach (var message in exitingMessages)
+            {
+                Chat.Add(message);
+            }
         }
     }
 
@@ -104,14 +118,22 @@ public partial class MainViewModel : ObservableObject
     {
         if (string.IsNullOrEmpty(Message) && !IsItemSelected) return;
 
-        
+        var itemId = SelectedItem.ItemId;
+        List<Message> existingMessages;
+        if (!ChatData.Chats.TryGetValue(itemId, out existingMessages))
+        { 
+            existingMessages = new();
+            ChatData.Chats[itemId] = existingMessages;
+        }
 
+        var userMessage = new Message
+            {
+                IsUser = true,
+                Text = Message
+            };
 
-        Chat.Add(new Message
-        {
-            IsUser = true,
-            Text = Message
-        });
+        Chat.Add(userMessage);
+        existingMessages.Add(userMessage);
 
         var promptText = Message;
         Message = string.Empty;
@@ -131,19 +153,25 @@ public partial class MainViewModel : ObservableObject
                 response = await _geminiService.PromptText($"{promptText}: \"{SelectedItem.Text}\"");
             }
 
-            Chat.Add(new Message
-            {
-                IsUser = false,
-                Text = response
-            });
+            var geminiResponse = new Message
+                {
+                    IsUser = false,
+                    Text = response
+                };
+
+            Chat.Add(geminiResponse);
+            existingMessages.Add(geminiResponse);
         }
         catch (Exception e)
         {
-            Chat.Add(new Message
-            {
-                IsUser = false,
-                Text = $"Exception: {e.Message}"
-            });
+            var exceptionMessage = new Message
+                {
+                    IsUser = false,
+                    Text = $"Exception: {e.Message}"
+                };
+
+            Chat.Add(exceptionMessage);
+            existingMessages.Add(exceptionMessage);
         }
         finally
         {
@@ -151,8 +179,27 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    //[RelayCommand]
-    //private void ShowTextOnly() => ClipboardItems = (ObservableCollection<ClipboardItem>)ClipboardItems.Where(c => !(c.IsImage));
+    [RelayCommand]
+    private void RefreshItems()
+    {
+        ShouldRefreshListView = false;
+        IsItemSelected = false;
+        SelectedItem = null;
+        PopulateClipboardItems();
+    }
+
+
+    [RelayCommand]
+    private async Task RecommendedPrompt(int index)
+    {
+        if (SelectedItem is null) return;
+
+        Message = SelectedItem.SuggestedPrompts[index];
+        await SendPrompt();
+    }
+
+    [RelayCommand]
+    private void ShowTextOnly() => ClipboardItems = (ObservableCollection<ClipboardItem>)ClipboardItems.Where(c => !(c.IsImage));
 
     [RelayCommand]
     private void ShowImagesOnly()
@@ -166,12 +213,4 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    private async Task RecommendedPrompt(int index)
-    {
-        if (SelectedItem is null) return;
-
-        Message = SelectedItem.SuggestedPrompts[index];
-        await SendPrompt();
-    }
 }

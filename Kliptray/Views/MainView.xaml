@@ -21,6 +21,10 @@
             FalseValue="Collapsed"
             TrueValue="Visible" />
         <converters:BoolToVisibilityConverter
+            x:Key="RefreshListBoolToVisibilityConverter"
+            FalseValue="Collapsed"
+            TrueValue="Visible" />
+        <converters:BoolToVisibilityConverter
             x:Key="PaneInfoBoolToVisibilityConverter"
             FalseValue="Visible"
             TrueValue="Collapsed" />
@@ -202,13 +206,39 @@
                     </StackPanel>
                     <!--#endregion-->
 
-                    <StackPanel
-                        Grid.Row="2"
-                        Orientation="Horizontal"
-                        Spacing="2">
-                        <TextBlock FontSize="11" Text="Total items in Clipboard:" />
-                        <TextBlock FontSize="11" Text="{x:Bind ViewModel.ClipboardItems.Count, Mode=OneWay}" />
-                    </StackPanel>
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" Spacing="2">
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="11"
+                                Text="Total items in Clipboard:" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="11"
+                                Text="{x:Bind ViewModel.ClipboardItems.Count, Mode=OneWay}" />
+                        </StackPanel>
+                        <StackPanel
+                            Grid.Column="1"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal"
+                            Spacing="2"
+                            Visibility="{x:Bind ViewModel.ShouldRefreshListView, Mode=OneWay, Converter={StaticResource RefreshListBoolToVisibilityConverter}}">
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="11"
+                                Text="New copied item(s)!" />
+                            <Button
+                                VerticalAlignment="Center"
+                                Content="Refresh"
+                                FontSize="11" Padding="4" 
+                                Style="{StaticResource AccentButtonStyle}"
+                                Command="{x:Bind ViewModel.RefreshItemsCommand}"/>
+                        </StackPanel>
+                    </Grid>
                 </Grid>
             </SplitView.Pane>
             <!--#endregion-->
