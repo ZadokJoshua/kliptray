@@ -25,12 +25,12 @@ public static class ClipboardHelper
                 var randomAccessStreamWithContentType = await bitmapReference.OpenReadAsync();
                 await bitmap.SetSourceAsync(randomAccessStreamWithContentType);
 
-                if(IsDuplicateScreenshot(_previousImageDateTime, item.Timestamp)) 
-                {
-                    return null;
-                }
+                //if(IsDuplicateScreenshot(_previousImageDateTime, item.Timestamp)) 
+                //{
+                //    return null;
+                //}
 
-                _previousImageDateTime = item.Timestamp;
+                //_previousImageDateTime = item.Timestamp;
 
                 return new ClipboardItem
                 {
@@ -79,9 +79,9 @@ public static class ClipboardHelper
         return clipboardItems;
     }
 
-    private static bool IsDuplicateScreenshot(DateTimeOffset previousImageDT, DateTimeOffset currentImageDT)
-    {
-        _previousImageDateTime = currentImageDT;
-        return (previousImageDT - currentImageDT) < TimeSpan.FromSeconds(1);
-    }
+    //private static bool IsDuplicateScreenshot(DateTimeOffset previousImageDT, DateTimeOffset currentImageDT)
+    //{
+    //    _previousImageDateTime = currentImageDT;
+    //    return (previousImageDT - currentImageDT) < TimeSpan.FromSeconds(1);
+    //}
 }
