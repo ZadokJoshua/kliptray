@@ -10,7 +10,7 @@ namespace Kliptray.Helpers;
 
 public static class ImageHelper
 {
-    private static StorageFolder _parentfolder = KnownFolders.DocumentsLibrary;
+    private static readonly StorageFolder _parentfolder = KnownFolders.DocumentsLibrary;
     public static async Task<string> ConvertBytesToPngAsync(IRandomAccessStreamWithContentType randomAccessStreamWithContentType)
     {
         BitmapDecoder decoder = await BitmapDecoder.CreateAsync(randomAccessStreamWithContentType);
