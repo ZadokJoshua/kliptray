@@ -14,7 +14,7 @@ using Microsoft.UI.Xaml.Data;
 
 namespace Kliptray.ViewModels;
 
-public partial class MainViewModel : ObservableObject
+public partial class MainViewModel : ViewModelBase
 {
     private readonly IGeminiService _geminiService;
 
@@ -26,9 +26,6 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isItemSelected;
-
-    [ObservableProperty]
-    private bool _isBusy;
 
     [ObservableProperty]
     private bool _isClipboardEnabled = Clipboard.IsHistoryEnabled();
