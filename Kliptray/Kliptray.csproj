@@ -15,6 +15,7 @@
     <None Remove="Assets\icon-kliptray-cb.ico" />
     <None Remove="Assets\icon-kliptray-cb.png" />
     <None Remove="Assets\vector-bg.png" />
+    <None Remove="Views\ChatView.xaml" />
     <None Remove="Views\ChatWindow.xaml" />
     <None Remove="Views\MainView.xaml" />
   </ItemGroup>
@@ -55,6 +56,11 @@
   -->
   <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <ProjectCapability Include="Msix" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\ChatView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\ChatWindow.xaml">

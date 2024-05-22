@@ -8,9 +8,7 @@ using Windows.System;
 using CommunityToolkit.Mvvm.Input;
 using Kliptray.Helpers;
 using Kliptray.Services;
-using System.Linq;
 using System.Collections.Generic;
-using Microsoft.UI.Xaml.Data;
 
 namespace Kliptray.ViewModels;
 
@@ -63,7 +61,7 @@ public partial class MainViewModel : ViewModelBase
             ClipboardItems.Clear();
 
             var items = await ClipboardHelper.GetClipboardHistoryItemsAsync();
-            if (items.Count > 0 && items is not null)
+            if (items != null && items.Count > 0)
             {
                 foreach (var item in items)
                 {
@@ -102,7 +100,6 @@ public partial class MainViewModel : ViewModelBase
         if (ChatData.Chats.ContainsKey(itemId))
         {
             var exitingMessages = ChatData.Chats[itemId];
-
 
             foreach (var message in exitingMessages)
             {
@@ -195,20 +192,4 @@ public partial class MainViewModel : ViewModelBase
         Message = SelectedItem.SuggestedPrompts[index];
         await SendPrompt();
     }
-
-    //[RelayCommand]
-    //private void ShowTextOnly() => ClipboardItems = (ObservableCollection<ClipboardItem>)ClipboardItems.Where(c => !(c.IsImage));
-
-    //[RelayCommand]
-    //private void ShowImagesOnly()
-    //{
-    //    IList<ClipboardItem> items = new List<ClipboardItem>();
-    //    var clipboardItems = ClipboardItems.Where(c => c.IsImage);
-    //    ClipboardItems.Clear();
-    //    foreach (var clipboardItem in clipboardItems)
-    //    {
-    //        ClipboardItems.Add(clipboardItem);
-    //    }
-    //}
-
 }

@@ -19,10 +19,12 @@ public sealed partial class MainWindow : Window
         this.InitializeComponent();
 
         ExtendsContentIntoTitleBar = true;
+        
         SetTitleBar(AppTitleBar);
         Title = "Kliptray";
 
         this.Activated += MainWindow_Activated;
+        this.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(100, 100, 500, 500));
         // this.Closed += MainWindow_Closed;
     }
 
